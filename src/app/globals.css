@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -12,11 +14,18 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* System preference dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+/* Dark mode styles should override system preference when toggled */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {
