@@ -76,19 +76,19 @@ function absolutizeUrl(url: string, base: string): string {
 }
 
 async function isImageUrl(url: string, signal: AbortSignal): Promise<boolean> {
-  console.log(`[isImageUrl] Checking URL: ${url}`);
+  console.log(JSON.stringify({ ts: Date.now(), mod: 'fetchCover', fn: 'isImageUrl', msg: 'checking', url }));
   try {
     const res = await fetch(url, { method: 'HEAD', redirect: 'follow', signal });
     const ct = res.headers.get('content-type') || '';
-    console.log(`[isImageUrl] HEAD status: ${res.status}, content-type: ${ct}`);
+    console.log(JSON.stringify({ ts: Date.now(), mod: 'fetchCover', fn: 'isImageUrl', msg: 'head', status: res.status, contentType: ct }));
     if (ct.startsWith('image/')) return true;
     // Some servers might return 405 or 403 for HEAD, or incorrect content-type
     throw new Error('Content-type check failed or not image');
   } catch (e) {
-    console.log(`[isImageUrl] HEAD check failed or invalid type: ${e instanceof Error ? e.message : String(e)}`);
+    console.log(JSON.stringify({ ts: Date.now(), mod: 'fetchCover', fn: 'isImageUrl', msg: 'head_failed', error: e instanceof Error ? e.message : String(e) }));
     // Fallback to extension check
     const isExtMatch = /(\.(jpg|jpeg|png|webp|gif|svg|avif)(\?.*)?)$/i.test(url);
-    console.log(`[isImageUrl] Extension match result: ${isExtMatch}`);
+    console.log(JSON.stringify({ ts: Date.now(), mod: 'fetchCover', fn: 'isImageUrl', msg: 'ext_match', result: isExtMatch }));
     return isExtMatch;
   }
 }
@@ -125,7 +125,7 @@ export async function fetchCoverFromPage(pageUrl: string): Promise<{ imageUrl: s
     const twImage = findMetaContent(html, ['twitter:image', 'twitter:image:src']);
     const linkImage = findLinkHref(html, ['image_src']);
     const jsonLdImage = findJsonLdImage(html);
-    console.log('[fetchCoverFromPage] Found candidates:', { ogImage, twImage, linkImage, jsonLdImage });
+    console.log(JSON.stringify({ ts: Date.now(), mod: 'fetchCover', fn: 'fetchCoverFromPage', msg: 'candidates', ogImage, twImage, linkImage, jsonLdImage }));
 
     let img = ogImage || twImage || jsonLdImage || null;
 

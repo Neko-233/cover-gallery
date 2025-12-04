@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/server-auth-options';
 import { fetchCoverFromPage } from '@/lib/fetchCover';
+import { allow } from '@/lib/rateLimit';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -12,11 +13,36 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const ok = allow(`covers:${ip}`, 60_000, 20);
+  if (!ok) return NextResponse.json({ error: '请求过于频繁' }, { status: 429 });
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: '未登录' }, { status: 401 });
   const body = await req.json().catch(() => null);
   const pageUrl: string | null = body?.pageUrl ? String(body.pageUrl) : null;
   const directUrl: string | null = body?.url ? String(body.url) : null;
+
+  const isAsync = (req.headers.get('x-async') || '').trim() === '1';
+
+  if (pageUrl && isAsync && process.env.NODE_ENV !== 'production') {
+    const taskId = crypto.randomUUID();
+    (async () => {
+      try {
+        const result = await fetchCoverFromPage(pageUrl);
+        if (!result.imageUrl) return;
+        await prisma.cover.create({
+          data: {
+            userId: String(session.user.id),
+            url: result.imageUrl,
+            pageUrl,
+            title: (body?.title ? String(body.title) : result.title) || null,
+            source: (body?.source ? String(body.source) : result.source) || null,
+          },
+        });
+      } catch {}
+    })();
+    return NextResponse.json({ accepted: true, taskId }, { status: 202 });
+  }
 
   if (pageUrl) {
     const result = await fetchCoverFromPage(pageUrl);
@@ -37,7 +63,7 @@ export async function POST(req: Request) {
 
   if (!directUrl) return NextResponse.json({ error: '缺少链接' }, { status: 400 });
   const isHttp = /^https?:\/\//i.test(directUrl);
-  const isImageExt = /\.(jpg|jpeg|png|webp|svg)(\?.*)?$/i.test(directUrl);
+  const isImageExt = /\.(jpg|jpeg|png|webp|svg|avif)(\?.*)?$/i.test(directUrl);
   if (!isHttp || !isImageExt) {
     return NextResponse.json({ error: '请提交图片直链（http/https，以图片扩展结尾）' }, { status: 400 });
   }

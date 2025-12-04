@@ -6,14 +6,20 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/server-auth-options';
 import { prisma } from '@/lib/prisma';
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams?: { page?: string; pageSize?: string } }) {
   const session = await getServerSession(authOptions);
   const staticCovers = await getCovers();
   let userCovers: Awaited<ReturnType<typeof prisma.cover.findMany>> = [];
   if (session?.user?.id) {
+    const page = Number(searchParams?.page ?? '1') || 1;
+    const pageSize = Number(searchParams?.pageSize ?? '20') || 20;
+    const take = Math.max(1, Math.min(100, pageSize));
+    const skip = (Math.max(1, page) - 1) * take;
     userCovers = await prisma.cover.findMany({
       where: { userId: String(session.user.id) },
       orderBy: { createdAt: 'desc' },
+      take,
+      skip,
     });
   }
   const covers = [

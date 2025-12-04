@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import CoverGrid from '@/components/CoverGrid';
 
-export default async function Page() {
+export default async function Page({ searchParams }: { searchParams?: { page?: string; pageSize?: string } }) {
   const session = await getServerSession(authOptions);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userId = (session?.user as any)?.id;
@@ -23,7 +23,11 @@ export default async function Page() {
     );
   }
 
-  const covers = await prisma.cover.findMany({ where: { userId: String(userId) }, orderBy: { createdAt: 'desc' } });
+  const page = Number(searchParams?.page ?? '1') || 1;
+  const pageSize = Number(searchParams?.pageSize ?? '20') || 20;
+  const take = Math.max(1, Math.min(100, pageSize));
+  const skip = (Math.max(1, page) - 1) * take;
+  const covers = await prisma.cover.findMany({ where: { userId: String(userId) }, orderBy: { createdAt: 'desc' }, take, skip });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mappedCovers = covers.map((c: any) => ({
     id: c.id,
