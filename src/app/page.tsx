@@ -13,8 +13,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
   } catch (_) {
     session = null;
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userId = (session as any)?.user?.id as string | undefined;
   let covers: { id: string; filename: string; title?: string; source?: string; url: string }[] = [];
-  if (session?.user?.id) {
+  if (userId) {
     try {
       const sp = await searchParams;
       const page = Number(sp?.page ?? '1') || 1;
@@ -22,7 +24,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
       const take = Math.max(1, Math.min(100, pageSize));
       const skip = (Math.max(1, page) - 1) * take;
       const userCovers = await prisma.cover.findMany({
-        where: { userId: String(session.user.id) },
+        where: { userId: String(userId) },
         orderBy: { createdAt: 'desc' },
         take,
         skip,
