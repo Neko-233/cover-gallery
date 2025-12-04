@@ -4,7 +4,7 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefi
 
 // Function to add timeout parameters to the database URL if they don't exist
 const getOptimizedDatabaseUrl = () => {
-  let url = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || '';
+  let url = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL || '';
   
   if (!url) return undefined;
 
