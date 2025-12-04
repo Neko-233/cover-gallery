@@ -3,17 +3,32 @@
 import Link from 'next/link';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { signOut, useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import UserMenu from '@/components/UserMenu';
 
-export default function HeaderActions({ count }: { count: number }) {
-  const { data: session } = useSession();
+export default function HeaderActions({ count, showCount = false }: { count?: number; showCount?: boolean }) {
+  const { data: session, status } = useSession();
+  const [clientCount, setClientCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (!showCount) return;
+    if (status !== 'authenticated') { setClientCount(0); return; }
+    let aborted = false;
+    fetch('/api/covers')
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { if (!aborted) setClientCount(Array.isArray(data) ? data.length : 0); })
+      .catch(() => { if (!aborted) setClientCount(null); });
+    return () => { aborted = true; };
+  }, [showCount, status, session?.user?.id]);
   return (
     <div className="flex items-center gap-4">
-      <div className="text-sm text-zinc-500 dark:text-zinc-400">{count} 张封面</div>
+      {showCount && (
+        <div className="text-sm text-zinc-500 dark:text-zinc-400">{(clientCount ?? count ?? 0)} 张封面</div>
+      )}
       <ThemeSwitcher />
       {session?.user ? (
         <div className="flex items-center gap-2">
           <Link href="/add" className="rounded-lg bg-zinc-900 text-white dark:bg-zinc-200 dark:text-zinc-900 px-3 py-2 text-sm">添加封面</Link>
-          <button onClick={() => signOut({ callbackUrl: '/' })} className="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-2 text-sm">退出</button>
+          <UserMenu />
         </div>
       ) : (
         <div className="flex items-center gap-2">
