@@ -26,14 +26,14 @@ const getOptimizedDatabaseUrl = () => {
   return url;
 };
 
-const client = new PrismaClient({
-  log: ['error'],
-  datasources: {
-    db: {
-      url: getOptimizedDatabaseUrl(),
-    },
-  },
-});
+const optimizedUrl = getOptimizedDatabaseUrl();
+
+const client = optimizedUrl
+  ? new PrismaClient({
+      log: ['error'],
+      datasources: { db: { url: optimizedUrl } },
+    })
+  : new PrismaClient({ log: ['error'] });
 
 try {
   const url = process.env.DATABASE_URL || '';
