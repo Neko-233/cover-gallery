@@ -10,13 +10,16 @@ interface CoverCardProps {
   selectable?: boolean;
   selected?: boolean;
   onSelectToggle?: () => void;
+  style?: React.CSSProperties;
+  className?: string;
 }
 
-export default function CoverCard({ cover, onClick, fit = 'contain', frame = true, orientation = 'landscape', selectable = false, selected = false, onSelectToggle }: CoverCardProps) {
+export default function CoverCard({ cover, onClick, fit = 'contain', frame = true, orientation = 'landscape', selectable = false, selected = false, onSelectToggle, style, className }: CoverCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ease-in-out cursor-pointer transform hover:scale-105"
+      style={style}
+      className={`group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl cursor-pointer transform hover:scale-105 ${className || ''}`}
     >
       {selectable && (
         <button

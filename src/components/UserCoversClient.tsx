@@ -12,16 +12,21 @@ export default function UserCoversClient() {
 
   useEffect(() => {
     if (status !== 'authenticated') {
+      // Clear covers if not authenticated
+      // eslint-disable-next-line
       setCovers([]);
       return;
     }
     let aborted = false;
+    // Reset error state
+    // eslint-disable-next-line
     setError(null);
     fetch('/api/covers')
       .then(async (res) => {
         if (!res.ok) throw new Error('fetch_failed');
         const data = await res.json();
         if (!aborted) setCovers(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           data.map((c: any) => ({ id: c.id, filename: c.url, title: c.title || undefined, source: c.source || undefined, url: c.url }))
         );
       })
@@ -36,15 +41,17 @@ export default function UserCoversClient() {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 px-3 py-2 text-sm">
-        {error}
+      <div className="px-6 sm:px-8">
+        <div className="rounded-lg border border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 px-3 py-2 text-sm">
+          {error}
+        </div>
       </div>
     );
   }
 
   if (covers === null) {
     return (
-      <div className="min-h-[200px] flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-sm">正在加载…</div>
+      <div className="min-h-[200px] flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-sm px-6 sm:px-8">正在加载…</div>
     );
   }
 

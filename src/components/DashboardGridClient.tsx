@@ -4,9 +4,25 @@ import { useMemo, useState } from 'react';
 import CoverGrid from '@/components/CoverGrid';
 import type { Cover } from '@/lib/covers';
 
+// 配置常量 - 可以在这里调整参数范围
+const CONFIG = {
+  IMAGE: {
+    MIN_WIDTH: 150,   // 图片最小宽度
+    MAX_WIDTH: 500,  // 图片最大宽度
+    STEP: 10,        // 调节步长
+    DEFAULT: 220     // 默认宽度
+  },
+  SPACING: {
+    MIN: 10,          // 最小间距
+    MAX: 60,         // 最大间距
+    DEFAULT: 25       // 默认间距
+  }
+} as const;
+
 export default function DashboardGridClient({ covers }: { covers: Cover[] }) {
-  const [size, setSize] = useState<1 | 2 | 3 | 4>(4);
-  const preset = size === 1 ? 'compact' : size === 2 ? 'normal' : size === 3 ? 'comfortable' : 'comfortable';
+  const [minWidth, setMinWidth] = useState<number>(CONFIG.IMAGE.DEFAULT);
+  const [spacing, setSpacing] = useState<number>(CONFIG.SPACING.DEFAULT);
+  const [alignment, setAlignment] = useState<'start' | 'center' | 'end'>('start');
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const selectedCount = selected.size;
@@ -58,54 +74,103 @@ export default function DashboardGridClient({ covers }: { covers: Cover[] }) {
   };
   return (
     <div>
-      <div className="mb-4 flex items-center gap-3 w-full">
-        <div className="text-sm text-zinc-600 dark:text-zinc-300">显示大小</div>
-        <input
-          type="range"
-          min={1}
-          max={4}
-          value={size}
-          onChange={(e) => setSize(Number(e.target.value) as 1 | 2 | 3 | 4)}
-          className="w-80"
-        />
-        <div className="text-xs text-zinc-500 dark:text-zinc-400">{size === 1 ? '紧凑' : size === 2 ? '标准' : size === 3 ? '舒适' : '更大'}</div>
-        <div className="ml-6 flex items-center gap-2">
-          <div className="text-sm text-zinc-600 dark:text-zinc-300">适配</div>
-          <button
-            type="button"
-            onClick={() => setFit((v) => (v === 'cover' ? 'contain' : 'cover'))}
-            className="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-2 text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-          >
-            {fit === 'cover' ? '裁切' : '完整'}
-          </button>
+      <div className="mx-6 sm:mx-8 mb-6 space-y-4 bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800">
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">图片大小</div>
+            <input
+              type="range"
+              min={CONFIG.IMAGE.MIN_WIDTH}
+              max={CONFIG.IMAGE.MAX_WIDTH}
+              step={CONFIG.IMAGE.STEP}
+              value={minWidth}
+              onChange={(e) => setMinWidth(Number(e.target.value))}
+              className="w-32 sm:w-48 accent-zinc-900 dark:accent-zinc-100"
+            />
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 w-8">{minWidth}px</div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">间距</div>
+            <input
+              type="range"
+              min={CONFIG.SPACING.MIN}
+              max={CONFIG.SPACING.MAX}
+              value={spacing}
+              onChange={(e) => setSpacing(Number(e.target.value))}
+              className="w-32 sm:w-48 accent-zinc-900 dark:accent-zinc-100"
+            />
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 w-6">{spacing}px</div>
+          </div>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectMode((v) => !v)}
-            className={`rounded-lg px-3 py-2 text-sm ${selectMode ? 'bg-zinc-900 text-white dark:bg-zinc-200 dark:text-zinc-900' : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors duration-200'}`}
-          >
-            {selectMode ? '退出选择' : '选择封面'}
-          </button>
-          <button
-            type="button"
-            onClick={downloadSelected}
-            disabled={!selectedCount}
-            className="rounded-lg bg-zinc-900 text-white dark:bg-zinc-200 dark:text-zinc-900 px-3 py-2 text-sm disabled:opacity-50 hover:opacity-90"
-          >
-            下载所选
-          </button>
+
+        <div className="flex flex-wrap items-center gap-4 border-t border-zinc-200 dark:border-zinc-800 pt-4">
+          <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1">
+            <button
+              onClick={() => setAlignment('start')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${alignment === 'start' ? 'bg-white dark:bg-zinc-600 shadow-sm text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+            >
+              左对齐
+            </button>
+            <button
+              onClick={() => setAlignment('center')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${alignment === 'center' ? 'bg-white dark:bg-zinc-600 shadow-sm text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+            >
+              居中
+            </button>
+            <button
+              onClick={() => setAlignment('end')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${alignment === 'end' ? 'bg-white dark:bg-zinc-600 shadow-sm text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+            >
+              右对齐
+            </button>
+          </div>
+
+          <div className="h-4 w-[1px] bg-zinc-300 dark:bg-zinc-700 mx-2 hidden sm:block" />
+
+          <div className="flex items-center gap-2">
+            <div className="text-sm text-zinc-600 dark:text-zinc-300">适配</div>
+            <button
+              type="button"
+              onClick={() => setFit((v) => (v === 'cover' ? 'contain' : 'cover'))}
+              className="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            >
+              {fit === 'cover' ? '裁切' : '完整'}
+            </button>
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectMode((v) => !v)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${selectMode ? 'bg-zinc-900 text-white dark:bg-zinc-200 dark:text-zinc-900 shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'}`}
+            >
+              {selectMode ? '退出选择' : '选择封面'}
+            </button>
+            <button
+              type="button"
+              onClick={downloadSelected}
+              disabled={!selectedCount}
+              className="rounded-lg bg-zinc-900 text-white dark:bg-zinc-200 dark:text-zinc-900 px-3 py-1.5 text-xs font-medium disabled:opacity-50 hover:opacity-90 shadow-sm transition-opacity"
+            >
+              下载所选 {selectedCount > 0 && `(${selectedCount})`}
+            </button>
+          </div>
         </div>
       </div>
+
       <CoverGrid
         covers={covers}
-        columnsPreset={size === 4 ? 'xlarge' : (preset as any)}
         onCoverClick={onItemClick}
         selectable={selectMode}
         selectedIds={selectedIds}
         onSelectToggle={toggleSelect}
         fit={fit}
         orientation={'landscape'}
+        spacing={spacing}
+        minWidth={minWidth}
+        maxWidth={Math.floor(minWidth * 1.5)}
+        alignment={alignment}
       />
     </div>
   );
