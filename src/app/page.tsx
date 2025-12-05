@@ -1,5 +1,4 @@
 import CoverGrid from '@/components/CoverGrid';
-import ThemeSwitcher from '@/components/ThemeSwitcher';
 import HeaderActions from '@/components/HeaderActions';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/server-auth-options';
@@ -10,7 +9,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
   let session: Awaited<ReturnType<typeof getServerSession>> | null = null;
   try {
     session = await getServerSession(authOptions);
-  } catch (_) {
+  } catch {
     session = null;
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,7 +35,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full px-6 sm:px-8 py-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
               封面画廊
@@ -46,12 +45,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 w-full py-8">
         {covers.length > 0 ? <CoverGrid covers={covers} /> : <UserCoversClient />}
       </main>
 
       <footer className="mt-auto border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full px-6 sm:px-8 py-6">
           <div className="text-center text-sm text-zinc-500 dark:text-zinc-400">
             封面收集展示网站 - 简洁、干净、不花哨
           </div>

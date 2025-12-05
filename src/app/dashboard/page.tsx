@@ -5,7 +5,6 @@ import Link from 'next/link';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import UserMenu from '@/components/UserMenu';
 
-import CoverGrid from '@/components/CoverGrid';
 import DashboardGridClient from '@/components/DashboardGridClient';
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ page?: string; pageSize?: string }> }) {
@@ -54,7 +53,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full px-6 sm:px-8 py-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">我的主页</h2>
             <div className="flex items-center gap-4">
@@ -66,12 +65,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
           </div>
         </div>
       </header>
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-zinc-700 dark:text-zinc-300 mb-6">欢迎，{session?.user?.name || session?.user?.email}</div>
+      <main className="flex-1 w-full py-8">
+        <div className="px-6 sm:px-8 mb-6">
+           <div className="text-zinc-700 dark:text-zinc-300">欢迎，{session?.user?.name || session?.user?.email}</div>
+        </div>
         <DashboardGridClient covers={mappedCovers} />
       </main>
         <footer className="mt-auto border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="w-full px-6 sm:px-8 py-6">
           <div className="text-center text-sm text-zinc-500 dark:text-zinc-400">封面收集展示网站 - 简洁、干净、不花哨</div>
         </div>
       </footer>
