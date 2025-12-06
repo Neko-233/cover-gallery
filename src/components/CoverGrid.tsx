@@ -13,9 +13,13 @@ interface CoverGridProps {
   onSelectToggle?: (cover: Cover) => void;
   fit?: 'cover' | 'contain';
   orientation?: 'landscape' | 'portrait';
+  spacing?: number;
+  minWidth?: number;
+  maxWidth?: number;
+  alignment?: 'start' | 'center' | 'end';
 }
 
-export default function CoverGrid({ covers, onCoverClick, columnsPreset = 'normal', selectable = false, selectedIds, onSelectToggle, fit = 'contain', orientation = 'landscape' }: CoverGridProps) {
+export default function CoverGrid({ covers, onCoverClick, columnsPreset = 'normal', selectable = false, selectedIds, onSelectToggle, fit = 'contain', orientation = 'landscape', spacing = 16, minWidth = 280, maxWidth = 280, alignment = 'start' }: CoverGridProps) {
   const allCovers = useMemo(() => covers, [covers]);
 
   if (allCovers.length === 0) {
@@ -33,17 +37,22 @@ export default function CoverGrid({ covers, onCoverClick, columnsPreset = 'norma
     );
   }
 
+  const alignmentClass = alignment === 'center' ? 'justify-center' : alignment === 'end' ? 'justify-end' : 'justify-start';
   const gridClass =
     columnsPreset === 'compact'
       ? 'grid w-full grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3'
       : columnsPreset === 'comfortable'
       ? 'grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5'
       : columnsPreset === 'xlarge'
-      ? 'grid w-full justify-start grid-cols-[repeat(auto-fill,minmax(280px,280px))] gap-4'
+      ? `grid w-full ${alignmentClass}`
       : 'grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4';
+  const gridStyle =
+    columnsPreset === 'xlarge'
+      ? { gap: spacing, gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}px, ${maxWidth}px))` }
+      : { gap: spacing };
 
   return (
-    <div className={gridClass}>
+    <div className={gridClass} style={gridStyle}>
       {allCovers.map((cover) => (
         <CoverCard
           key={cover.id}
