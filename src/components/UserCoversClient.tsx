@@ -13,13 +13,12 @@ export default function UserCoversClient() {
   useEffect(() => {
     if (status !== 'authenticated') {
       // Clear covers if not authenticated
-      // eslint-disable-next-line
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCovers([]);
       return;
     }
     let aborted = false;
     // Reset error state
-    // eslint-disable-next-line
     setError(null);
     fetch('/api/covers')
       .then(async (res) => {

@@ -28,7 +28,7 @@ export default function AddCoverForm() {
     if (res.ok) {
       router.push('/dashboard');
     } else {
-      const data = await res.json().catch(() => ({} as any));
+      const data = await res.json().catch(() => ({ error: 'Unknown error' }));
       setError(data?.error || '提交失败，无法提取封面');
     }
   };

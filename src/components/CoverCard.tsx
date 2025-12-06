@@ -10,16 +10,13 @@ interface CoverCardProps {
   selectable?: boolean;
   selected?: boolean;
   onSelectToggle?: () => void;
-  style?: React.CSSProperties;
-  className?: string;
 }
 
-export default function CoverCard({ cover, onClick, fit = 'contain', frame = true, orientation = 'landscape', selectable = false, selected = false, onSelectToggle, style, className }: CoverCardProps) {
+export default function CoverCard({ cover, onClick, fit = 'contain', frame = true, orientation = 'landscape', selectable = false, selected = false, onSelectToggle }: CoverCardProps) {
   return (
     <div
       onClick={onClick}
-      style={style}
-      className={`group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl cursor-pointer transform hover:scale-105 ${className || ''}`}
+      className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ease-in-out cursor-pointer h-full"
     >
       {selectable && (
         <button
@@ -31,26 +28,29 @@ export default function CoverCard({ cover, onClick, fit = 'contain', frame = tru
           {selected ? '✓' : ''}
         </button>
       )}
-      <div className={`${orientation === 'portrait' ? 'aspect-[3/4]' : 'aspect-video'} relative bg-gray-100 dark:bg-gray-800 ${frame ? 'ring-1 ring-gray-200 dark:ring-gray-700' : ''}`}>
+      <div className={`${orientation === 'portrait' ? 'aspect-3/4' : 'aspect-video'} relative bg-gray-100 dark:bg-gray-800 ${frame ? 'ring-1 ring-gray-200 dark:ring-gray-700' : ''}`}>
         {cover.url.startsWith('http') ? (
-          <img
+          <Image
             src={`/api/image-proxy?url=${encodeURIComponent(cover.url)}`}
             alt={cover.title || 'Cover image'}
-            className={`absolute inset-0 w-full h-full ${fit === 'cover' ? 'object-cover' : 'object-contain'}`}
+            fill
+            unoptimized
+            className={`${fit === 'cover' ? 'object-cover' : 'object-contain'} transition-transform duration-300 ease-in-out group-hover:scale-[1.02]`}
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
           />
         ) : (
           <Image
             src={cover.url}
             alt={cover.title || 'Cover image'}
             fill
-            className={fit === 'cover' ? 'object-cover' : 'object-contain'}
+            className={`${fit === 'cover' ? 'object-cover' : 'object-contain'} transition-transform duration-300 ease-in-out group-hover:scale-[1.02]`}
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
             priority={false}
           />
         )}
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <div className="absolute bottom-0 left-0 right-0 p-4">
           {cover.title && (
             <h3 className="text-white text-sm font-medium mb-1 line-clamp-2">
