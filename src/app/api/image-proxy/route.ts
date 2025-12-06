@@ -69,7 +69,7 @@ export async function GET(req: Request) {
       },
     });
     return res;
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: '代理失败' }, { status: 500 });
   } finally {
     clearTimeout(timeout);

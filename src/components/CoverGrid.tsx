@@ -3,7 +3,6 @@
 import { Cover } from '@/lib/covers';
 import { useMemo } from 'react';
 import CoverCard from './CoverCard';
-import { useFlipAnimation } from '@/hooks/useFlipAnimation';
 
 interface CoverGridProps {
   covers: Cover[];
@@ -14,31 +13,14 @@ interface CoverGridProps {
   onSelectToggle?: (cover: Cover) => void;
   fit?: 'cover' | 'contain';
   orientation?: 'landscape' | 'portrait';
-  spacing?: number;
-  minWidth?: number;
-  maxWidth?: number;
-  alignment?: 'start' | 'center' | 'end';
 }
 
-export default function CoverGrid({
-  covers,
-  onCoverClick,
-  selectable = false,
-  selectedIds,
-  onSelectToggle,
-  fit = 'contain',
-  orientation = 'landscape',
-  spacing = 8,
-  minWidth = 160,
-  maxWidth = 300,
-  alignment = 'start'
-}: CoverGridProps) {
+export default function CoverGrid({ covers, onCoverClick, columnsPreset = 'normal', selectable = false, selectedIds, onSelectToggle, fit = 'contain', orientation = 'landscape' }: CoverGridProps) {
   const allCovers = useMemo(() => covers, [covers]);
-  const registerItem = useFlipAnimation([alignment, spacing, minWidth, allCovers]);
 
   if (allCovers.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] px-6 sm:px-8">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="text-gray-500 dark:text-gray-400 text-lg mb-2">
             暂无封面图片
@@ -51,33 +33,28 @@ export default function CoverGrid({
     );
   }
 
+  const gridClass =
+    columnsPreset === 'compact'
+      ? 'grid w-full grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3'
+      : columnsPreset === 'comfortable'
+      ? 'grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5'
+      : columnsPreset === 'xlarge'
+      ? 'grid w-full justify-start grid-cols-[repeat(auto-fill,minmax(280px,280px))] gap-4'
+      : 'grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4';
+
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}px, ${maxWidth}px))`,
-        gap: `${spacing}px`,
-        justifyContent: alignment,
-      }}
-      className="w-full transition-all duration-300 ease-in-out px-6 sm:px-8"
-    >
-      {allCovers.map((cover, index) => (
-        <div
+    <div className={gridClass}>
+      {allCovers.map((cover) => (
+        <CoverCard
           key={cover.id}
-          ref={(el) => registerItem(cover.id, el)}
-          data-index={index}
-          style={{ height: '100%' }} // 确保 wrapper 填满 grid cell
-        >
-          <CoverCard
-            cover={cover}
-            onClick={() => onCoverClick?.(cover)}
-            selectable={selectable}
-            selected={selectedIds ? selectedIds.has(cover.id) : false}
-            onSelectToggle={() => onSelectToggle?.(cover)}
-            fit={fit}
-            orientation={orientation}
-          />
-        </div>
+          cover={cover}
+          onClick={() => onCoverClick?.(cover)}
+          selectable={selectable}
+          selected={selectedIds ? selectedIds.has(cover.id) : false}
+          onSelectToggle={() => onSelectToggle?.(cover)}
+          fit={fit}
+          orientation={orientation}
+        />
       ))}
     </div>
   );

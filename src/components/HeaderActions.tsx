@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import UserMenu from '@/components/UserMenu';
 
@@ -11,7 +11,11 @@ export default function HeaderActions({ count, showCount = false }: { count?: nu
   const [clientCount, setClientCount] = useState<number | null>(null);
   useEffect(() => {
     if (!showCount) return;
-    if (status !== 'authenticated') { setClientCount(0); return; }
+    if (status !== 'authenticated') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setClientCount(0);
+      return;
+    }
     let aborted = false;
     fetch('/api/covers')
       .then((r) => r.ok ? r.json() : [])
