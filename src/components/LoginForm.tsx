@@ -20,10 +20,12 @@ export default function LoginForm() {
     const res = await signIn('credentials', { email, password: pwd, redirect: false });
     setLoading(false);
     if (res?.error) {
+      console.error('Login failed:', res.error);
       setError('邮箱或密码错误');
       return;
     }
     router.push('/');
+    router.refresh(); // Ensure the session state is updated on client
   };
 
   return (

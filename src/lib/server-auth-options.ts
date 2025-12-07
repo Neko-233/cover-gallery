@@ -7,6 +7,8 @@ import bcrypt from 'bcryptjs';
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
   pages: {
     signIn: '/login',
     error: '/login',
@@ -20,11 +22,16 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        const user = await prisma.user.findUnique({ where: { email: credentials.email } });
-        if (!user) return null;
-        const ok = await bcrypt.compare(credentials.password, user.passwordHash);
-        if (!ok) return null;
-        return { id: user.id, name: user.name || '', email: user.email, image: user.image || undefined };
+        try {
+          const user = await prisma.user.findUnique({ where: { email: credentials.email } });
+          if (!user) return null;
+          const ok = await bcrypt.compare(credentials.password, user.passwordHash);
+          if (!ok) return null;
+          return { id: user.id, name: user.name || '', email: user.email, image: user.image || undefined };
+        } catch (e) {
+          console.error('Auth error:', e);
+          return null;
+        }
       },
     }),
   ],
