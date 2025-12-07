@@ -15,7 +15,7 @@ function useColumns() {
       else if (window.innerWidth >= 1024) setColumns(4);
       else if (window.innerWidth >= 768) setColumns(3);
       else if (window.innerWidth >= 640) setColumns(2);
-      else setColumns(2); // Mobile also 2 cols looks better for marquee
+      else setColumns(1);
     };
     update();
     window.addEventListener('resize', update);
@@ -117,10 +117,8 @@ export default function AutoScrollMasonry() {
             <div 
               className="animate-marquee-vertical"
               style={{
-                // Adjust duration based on content length to maintain consistent speed?
-                // Or just fixed long duration. 
-                // Using CSS variable for animation duration if needed.
-                animationDuration: '60s',
+                // Adjust duration based on content length to maintain consistent speed
+                animationDuration: `${Math.max(20, colItems.length * 5)}s`,
                 animationTimingFunction: 'linear',
                 animationIterationCount: 'infinite',
                 // Stagger start time to avoid lining up perfectly
@@ -161,6 +159,9 @@ export default function AutoScrollMasonry() {
         .animate-marquee-vertical {
           animation-name: marquee-vertical;
           will-change: transform;
+        }
+        .animate-marquee-vertical:hover {
+          animation-play-state: paused;
         }
         /* Make sure container doesn't shrink cards too much */
         .flex-1 {
