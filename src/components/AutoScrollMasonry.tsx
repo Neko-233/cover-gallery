@@ -91,7 +91,7 @@ export default function AutoScrollMasonry() {
   }, [items, columns]);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-900">
+    <div className="h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-900" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' }}>
       {error && (
         <div className="absolute top-4 left-0 right-0 z-10 px-6 sm:px-8">
           <div className="rounded-lg border border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 px-3 py-2 text-sm">{error}</div>

@@ -14,6 +14,7 @@ model User {
   name         String?
   image        String?
   passwordHash String
+  recoveryKey  String?  // Hashed recovery key for password reset
   createdAt    DateTime @default(now())
   covers       Cover[]
   sessions     Session[]
@@ -63,7 +64,7 @@ model Session {
 
 model VerificationToken {
   identifier String
-  token      String   @unique
+  token      String
   expires    DateTime
 
   @@unique([identifier, token])
