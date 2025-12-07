@@ -26,7 +26,7 @@ export default function UserCoversClient() {
         const data = await res.json();
         if (!aborted) setCovers(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data.map((c: any) => ({ id: c.id, filename: c.url, title: c.title || undefined, source: c.source || undefined, url: c.url }))
+          data.map((c: any) => ({ id: c.id, filename: c.url, title: c.title || undefined, source: c.source || undefined, url: c.url, pageUrl: c.pageUrl || undefined }))
         );
       })
       .catch(() => {
@@ -56,4 +56,3 @@ export default function UserCoversClient() {
 
   return <CoverGrid covers={covers} />;
 }
-

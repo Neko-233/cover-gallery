@@ -4,4 +4,5 @@ export interface Cover {
   title?: string;
   source?: string;
   url: string;
+  pageUrl?: string;
 }

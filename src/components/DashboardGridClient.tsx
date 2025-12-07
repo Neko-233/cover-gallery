@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import CoverGrid from '@/components/CoverGrid';
+import Slider from '@/components/Slider';
 import type { Cover } from '@/lib/covers';
 
 // 配置常量 - 可以在这里调整参数范围
@@ -22,19 +23,19 @@ const CONFIG = {
 export default function DashboardGridClient({ covers }: { covers: Cover[] }) {
   const [minWidth, setMinWidth] = useState<number>(CONFIG.IMAGE.DEFAULT);
   const [spacing, setSpacing] = useState<number>(CONFIG.SPACING.DEFAULT);
-  const [alignment, setAlignment] = useState<'start' | 'center' | 'end'>('start');
+  const alignment: 'start' | 'center' | 'end' = 'center';
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const selectedCount = selected.size;
   const selectedIds = useMemo(() => selected, [selected]);
-  const [fit, setFit] = useState<'cover' | 'contain'>('cover');
+  const fit: 'cover' | 'contain' = 'cover';
 
   const onItemClick = (cover: Cover) => {
     if (selectMode) {
       toggleSelect(cover);
       return;
     }
-    const url = cover.url;
+    const url = cover.pageUrl || cover.url;
     try {
       window.open(url, '_blank');
     } catch {}
@@ -78,65 +79,27 @@ export default function DashboardGridClient({ covers }: { covers: Cover[] }) {
         <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-3">
             <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">图片大小</div>
-            <input
-              type="range"
+            <Slider
               min={CONFIG.IMAGE.MIN_WIDTH}
               max={CONFIG.IMAGE.MAX_WIDTH}
               step={CONFIG.IMAGE.STEP}
               value={minWidth}
-              onChange={(e) => setMinWidth(Number(e.target.value))}
-              className="w-32 sm:w-48 accent-zinc-900 dark:accent-zinc-100"
+              onChange={(v) => setMinWidth(v)}
+              className="w-32 sm:w-48"
             />
             <div className="text-xs text-zinc-500 dark:text-zinc-400 w-8">{minWidth}px</div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">间距</div>
-            <input
-              type="range"
+            <Slider
               min={CONFIG.SPACING.MIN}
               max={CONFIG.SPACING.MAX}
               value={spacing}
-              onChange={(e) => setSpacing(Number(e.target.value))}
-              className="w-32 sm:w-48 accent-zinc-900 dark:accent-zinc-100"
+              onChange={(v) => setSpacing(v)}
+              className="w-32 sm:w-48"
             />
             <div className="text-xs text-zinc-500 dark:text-zinc-400 w-6">{spacing}px</div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4 border-t border-zinc-200 dark:border-zinc-800 pt-4">
-          <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1">
-            <button
-              onClick={() => setAlignment('start')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${alignment === 'start' ? 'bg-white dark:bg-zinc-600 shadow-sm text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-            >
-              左对齐
-            </button>
-            <button
-              onClick={() => setAlignment('center')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${alignment === 'center' ? 'bg-white dark:bg-zinc-600 shadow-sm text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-            >
-              居中
-            </button>
-            <button
-              onClick={() => setAlignment('end')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${alignment === 'end' ? 'bg-white dark:bg-zinc-600 shadow-sm text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-            >
-              右对齐
-            </button>
-          </div>
-
-          <div className="h-4 w-[1px] bg-zinc-300 dark:bg-zinc-700 mx-2 hidden sm:block" />
-
-          <div className="flex items-center gap-2">
-            <div className="text-sm text-zinc-600 dark:text-zinc-300">适配</div>
-            <button
-              type="button"
-              onClick={() => setFit((v) => (v === 'cover' ? 'contain' : 'cover'))}
-              className="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-            >
-              {fit === 'cover' ? '裁切' : '完整'}
-            </button>
           </div>
 
           <div className="ml-auto flex items-center gap-2">
@@ -168,6 +131,7 @@ export default function DashboardGridClient({ covers }: { covers: Cover[] }) {
         fit={fit}
         orientation={'landscape'}
         spacing={spacing}
+        columnsPreset={"xlarge"}
         minWidth={minWidth}
         maxWidth={Math.floor(minWidth * 1.5)}
         alignment={alignment}

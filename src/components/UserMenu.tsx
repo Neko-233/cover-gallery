@@ -32,22 +32,19 @@ export default function UserMenu() {
         {initial}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-40 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-lg">
-          <div className="px-3 py-2 text-xs text-zinc-500 dark:text-zinc-400 truncate">
+        <div className="absolute right-0 mt-2 w-32 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-lg z-50 p-1">
+          <div className="px-2 py-1.5 text-xs text-zinc-500 dark:text-zinc-400 truncate border-b border-zinc-100 dark:border-zinc-800/50 mb-1">
             {name || '已登录'}
           </div>
-          <div className="border-t border-zinc-200 dark:border-zinc-800" />
-          <div className="py-1">
-            <Link href="/dashboard" className="block px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md">
-              我的主页
-            </Link>
-            <button
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="block w-full text-left px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md"
-            >
-              退出登录
-            </button>
-          </div>
+          <Link href="/dashboard" className="block px-2 py-1.5 text-xs text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md">
+            我的主页
+          </Link>
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="block w-full text-left px-2 py-1.5 text-xs text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md"
+          >
+            退出登录
+          </button>
         </div>
       )}
     </div>

@@ -19,7 +19,7 @@ interface CoverGridProps {
   alignment?: 'start' | 'center' | 'end';
 }
 
-export default function CoverGrid({ covers, onCoverClick, columnsPreset = 'normal', selectable = false, selectedIds, onSelectToggle, fit = 'contain', orientation = 'landscape', spacing = 16, minWidth = 280, maxWidth = 280, alignment = 'start' }: CoverGridProps) {
+export default function CoverGrid({ covers, onCoverClick, columnsPreset = 'comfortable', selectable = false, selectedIds, onSelectToggle, fit = 'contain', orientation = 'landscape', spacing = 16, minWidth = 280, maxWidth = 280, alignment = 'start' }: CoverGridProps) {
   const allCovers = useMemo(() => covers, [covers]);
 
   if (allCovers.length === 0) {

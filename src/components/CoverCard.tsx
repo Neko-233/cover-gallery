@@ -1,4 +1,6 @@
+"use client";
 import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 import { Cover } from '@/lib/covers';
 
 interface CoverCardProps {
@@ -13,9 +15,13 @@ interface CoverCardProps {
 }
 
 export default function CoverCard({ cover, onClick, fit = 'contain', frame = true, orientation = 'landscape', selectable = false, selected = false, onSelectToggle }: CoverCardProps) {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) return null;
+
   return (
     <div
-      onClick={onClick}
+      onClick={onClick ?? (() => { try { window.open(cover.pageUrl || cover.url, '_blank'); } catch {} })}
       className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ease-in-out cursor-pointer h-full"
     >
       {selectable && (
@@ -36,7 +42,8 @@ export default function CoverCard({ cover, onClick, fit = 'contain', frame = tru
             fill
             unoptimized
             className={`${fit === 'cover' ? 'object-cover' : 'object-contain'} transition-transform duration-300 ease-in-out group-hover:scale-[1.02]`}
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            onError={() => setHasError(true)}
           />
         ) : (
           <Image
@@ -44,8 +51,9 @@ export default function CoverCard({ cover, onClick, fit = 'contain', frame = tru
             alt={cover.title || 'Cover image'}
             fill
             className={`${fit === 'cover' ? 'object-cover' : 'object-contain'} transition-transform duration-300 ease-in-out group-hover:scale-[1.02]`}
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
             priority={false}
+            onError={() => setHasError(true)}
           />
         )}
       </div>

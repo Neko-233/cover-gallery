@@ -37,7 +37,8 @@ const client = optimizedUrl
 
 try {
   const url = process.env.DATABASE_URL || '';
-  if (url.startsWith('file:') || url.startsWith('sqlite:')) {
+  const DEBUG_PRISMA = process.env.DEBUG_PRISMA === '1';
+  if ((url.startsWith('file:') || url.startsWith('sqlite:')) && DEBUG_PRISMA) {
     console.log(JSON.stringify({ ts: Date.now(), mod: 'prisma', msg: 'warn_sqlite', databaseUrl: url }));
   }
 } catch {}
