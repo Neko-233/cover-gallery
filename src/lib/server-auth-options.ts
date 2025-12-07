@@ -24,12 +24,26 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
         try {
           const user = await prisma.user.findUnique({ where: { email: credentials.email } });
-          if (!user) return null;
+          if (!user) {
+            console.log('❌ Login failed: User not found for email:', credentials.email);
+            return null;
+          }
+          
+          if (!user.passwordHash) {
+             console.log('❌ Login failed: User has no password hash');
+             return null;
+          }
+
           const ok = await bcrypt.compare(credentials.password, user.passwordHash);
-          if (!ok) return null;
+          if (!ok) {
+            console.log('❌ Login failed: Password mismatch for user:', user.email);
+            return null;
+          }
+          
+          console.log('✅ Login successful for user:', user.email);
           return { id: user.id, name: user.name || '', email: user.email, image: user.image || undefined };
         } catch (e) {
-          console.error('Auth error:', e);
+          console.error('🔥 Auth error exception:', e);
           return null;
         }
       },
