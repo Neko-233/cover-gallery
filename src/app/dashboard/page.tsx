@@ -90,7 +90,7 @@ export default async function Page() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">我的封面</h1>
             <p className="text-zinc-500 dark:text-zinc-400">
-              共 {mappedCovers.length} 张封面 · 欢迎回来，{session.user.name || session.user.email}
+              共 {mappedCovers.length} 张封面 · 欢迎回来，{session?.user?.name || session?.user?.email}
             </p>
           </div>
           
