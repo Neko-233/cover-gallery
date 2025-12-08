@@ -107,22 +107,19 @@ export default function AutoScrollMasonry() {
           <div 
             key={colIndex} 
             className="flex-1 min-w-0 h-full overflow-hidden relative"
-            style={{
-              // Stagger animation slightly for each column to look more organic
-              // Even columns move slightly different speed or offset if desired, 
-              // but consistent speed is better for reading.
-              // Let's just use consistent speed.
-            }}
           >
             <div 
               className="animate-marquee-vertical"
               style={{
                 // Adjust duration based on content length to maintain consistent speed
-                animationDuration: `${Math.max(20, colItems.length * 5)}s`,
+                // Add some variation per column
+                animationDuration: `${Math.max(40, colItems.length * 8) + (colIndex % 2 === 0 ? 0 : 5)}s`,
                 animationTimingFunction: 'linear',
                 animationIterationCount: 'infinite',
                 // Stagger start time to avoid lining up perfectly
-                animationDelay: `-${colIndex * 5}s`
+                animationDelay: `-${colIndex * 7}s`,
+                // Alternate direction for visual interest
+                animationDirection: colIndex % 2 === 0 ? 'normal' : 'reverse'
               }}
             >
               {/* Original List */}

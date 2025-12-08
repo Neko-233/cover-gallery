@@ -60,32 +60,34 @@ export default async function Page() {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
-      <header className="sticky top-0 z-40 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
-        <div className="w-full px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 group shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center transition-transform group-hover:scale-105">
-              <GalleryVerticalEnd className="w-5 h-5 text-white dark:text-zinc-900" />
-            </div>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 hidden sm:block">封面画廊</h2>
-          </Link>
-
-          <div className="flex items-center gap-2 sm:gap-4">
-            <Link 
-              href="/add" 
-              className="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-sm font-medium transition-transform hover:scale-105 active:scale-95 shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">添加封面</span>
-              <span className="sm:hidden">添加</span>
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md transition-all">
+        <div className="w-full px-4 sm:px-8 py-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shadow-md transition-transform group-hover:scale-105">
+                <GalleryVerticalEnd className="w-5 h-5 text-white dark:text-zinc-900" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">封面画廊</h2>
             </Link>
-            <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
-            <ThemeSwitcher />
-            <UserMenu />
+
+            <div className="ml-auto flex items-center gap-2 sm:gap-4">
+              <Link 
+                href="/add" 
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-sm font-medium transition-transform hover:scale-105 active:scale-95 shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">添加封面</span>
+                <span className="sm:hidden">添加</span>
+              </Link>
+              <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
+              <ThemeSwitcher />
+              <UserMenu />
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 w-full">
+      <main className="flex-1 w-full pt-[72px]">
         <div className="max-w-[1920px] mx-auto px-4 sm:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">我的封面</h1>
