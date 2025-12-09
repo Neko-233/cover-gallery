@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
+import os from 'os';
 import { fetchCoverFromPage } from '../lib/fetchCover';
 
 // Define extended Context interface containing user property
@@ -17,6 +18,8 @@ const prisma = new PrismaClient();
 
 // Bot Token
 const BOT_TOKEN = '8226805152:AAHUEFtZqsWnlKoF1Px75o859Z2UdVnoFp4';
+// Web App URL (from env or default)
+const WEB_APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
 if (!BOT_TOKEN) {
   console.error('Bot token is required');
@@ -37,6 +40,7 @@ const HELP_MESSAGE = `
 /add <url> [title] - 添加新封面
 /delete <id> - 删除封面
 /delete <序号> (例如 /delete 1 删除列表中的第一项)
+/check - 查看 Bot 运行状态
 
 *注意*：为了安全起见，建议绑定后删除聊天记录中的密码信息。
 `;
@@ -384,6 +388,49 @@ bot.command('delete', withUser, async (ctx: BotContext) => {
   } catch (error) {
     console.error(error);
     ctx.reply('删除封面失败。');
+  }
+});
+
+// /check - Check bot status
+bot.command('check', async (ctx) => {
+  try {
+    const uptime = process.uptime();
+    const memoryUsage = process.memoryUsage();
+    const freeMemory = os.freemem();
+    const totalMemory = os.totalmem();
+    
+    // Format memory helper
+    const formatMem = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+    
+    // Check DB connection
+    let dbStatus = '❌ Disconnected';
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      dbStatus = '✅ Connected';
+    } catch (e) {
+      console.error('DB check failed:', e);
+      dbStatus = '❌ Error';
+    }
+
+    const message = `
+📊 *System Status*
+
+🌍 *Web URL*: ${WEB_APP_URL}
+⏱ *Uptime*: ${Math.floor(uptime / 60)}m ${Math.floor(uptime % 60)}s
+💾 *Memory Usage*:
+  - RSS: ${formatMem(memoryUsage.rss)}
+  - Heap Total: ${formatMem(memoryUsage.heapTotal)}
+  - Heap Used: ${formatMem(memoryUsage.heapUsed)}
+💻 *System Memory*:
+  - Free: ${formatMem(freeMemory)}
+  - Total: ${formatMem(totalMemory)}
+🗄 *Database*: ${dbStatus}
+    `;
+
+    ctx.replyWithMarkdown(message);
+  } catch (error) {
+    console.error(error);
+    ctx.reply('获取状态失败。');
   }
 });
 
