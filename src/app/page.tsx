@@ -51,15 +51,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
       </div>
 
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md transition-all">
-        <div className="w-full px-4 sm:px-8 py-4">
-          <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-8 py-4">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shadow-md">
+              <div className="w-9 h-9 rounded-xl bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shadow-lg shadow-zinc-200 dark:shadow-zinc-900/50 transition-all hover:scale-105 hover:rotate-3">
                 <GalleryVerticalEnd className="w-5 h-5 text-white dark:text-zinc-900" />
               </div>
-              <h2 className="text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">封面画廊</h2>
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">封面画廊</h2>
             </div>
-            <div className="ml-auto flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-3">
               <HeaderActions />
             </div>
           </div>

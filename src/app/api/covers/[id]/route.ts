@@ -27,6 +27,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // First delete all likes associated with this cover
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (prisma as any).like.deleteMany({
+      where: { coverId: id },
+    });
+
     await prisma.cover.delete({
       where: { id },
     });

@@ -22,7 +22,7 @@ export default function HeaderActions({ count, showCount = false }: { count?: nu
       .then((data) => { if (!aborted) setClientCount(Array.isArray(data) ? data.length : 0); })
       .catch(() => { if (!aborted) setClientCount(null); });
     return () => { aborted = true; };
-  }, [showCount, status, session?.user?.id]);
+  }, [showCount, status, session]);
   return (
     <div className="flex items-center gap-2 sm:gap-4">
       {showCount && (
@@ -33,8 +33,8 @@ export default function HeaderActions({ count, showCount = false }: { count?: nu
         <UserMenu />
       ) : (
         <div className="flex items-center gap-2">
-          <Link href="/login" className="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-2 text-sm">登录</Link>
-          <Link href="/register" className="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-2 text-sm">注册</Link>
+          <Link href="/login" className="rounded-full bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 px-4 py-2 text-sm font-medium hover:bg-white/60 dark:hover:bg-zinc-800/60 transition-all hover:shadow-sm">登录</Link>
+          <Link href="/register" className="rounded-full bg-zinc-900/80 dark:bg-zinc-100/80 backdrop-blur-md text-white dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:bg-zinc-900 dark:hover:bg-zinc-100 transition-all hover:shadow-md">注册</Link>
         </div>
       )}
     </div>

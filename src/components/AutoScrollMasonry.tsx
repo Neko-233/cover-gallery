@@ -126,16 +126,16 @@ export default function AutoScrollMasonry() {
               <div className="pb-4 sm:pb-6">
                 {colItems.map((c, idx) => (
                   <div key={`${c.id}-${idx}`} className="mb-4 sm:mb-6">
-                    <CoverCard cover={c} fit="cover" orientation="landscape" />
+                    <CoverCard cover={c} fit="cover" orientation="landscape" variant="image-only" />
                   </div>
                 ))}
               </div>
               
               {/* Duplicated List for seamless loop */}
-              <div className="pb-4 sm:pb-6">
+              <div className="pb-4 sm:pb-6" aria-hidden="true">
                 {colItems.map((c, idx) => (
                   <div key={`${c.id}-${idx}-dup`} className="mb-4 sm:mb-6">
-                    <CoverCard cover={c} fit="cover" orientation="landscape" />
+                    <CoverCard cover={c} fit="cover" orientation="landscape" variant="image-only" />
                   </div>
                 ))}
               </div>

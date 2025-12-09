@@ -5,11 +5,49 @@ import { authOptions } from '@/lib/server-auth-options';
 import { fetchCoverFromPage } from '@/lib/fetchCover';
 import { allow } from '@/lib/rateLimit';
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: '未登录' }, { status: 401 });
-  const covers = await prisma.cover.findMany({ where: { userId: String(session.user.id) }, orderBy: { createdAt: 'desc' } });
-  return NextResponse.json(covers);
+
+  const url = new URL(req.url);
+  const collectionId = url.searchParams.get('collectionId');
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = { userId: String(session.user.id) };
+  if (collectionId) {
+    where.collectionId = collectionId;
+  }
+
+  const covers = await (prisma.cover as any).findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      _count: {
+        select: { likes: true },
+      },
+    },
+  });
+
+  // Get liked status
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const likedCoverIds = await (prisma as any).like.findMany({
+    where: {
+      userId: String(session.user.id),
+      coverId: { in: covers.map((c) => c.id) },
+    },
+    select: { coverId: true },
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const likedSet = new Set(likedCoverIds.map((l: any) => l.coverId));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = covers.map((c: any) => ({
+    ...c,
+    likesCount: c._count.likes,
+    liked: likedSet.has(c.id),
+  }));
+
+  return NextResponse.json(result);
 }
 
 export async function POST(req: Request) {
@@ -21,6 +59,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const pageUrl: string | null = body?.pageUrl ? String(body.pageUrl) : null;
   const directUrl: string | null = body?.url ? String(body.url) : null;
+  const collectionId: string | null = body?.collectionId ? String(body.collectionId) : null;
 
   const isAsync = (req.headers.get('x-async') || '').trim() === '1';
 
@@ -37,7 +76,8 @@ export async function POST(req: Request) {
             pageUrl,
             title: (body?.title ? String(body.title) : result.title) || null,
             source: (body?.source ? String(body.source) : result.source) || null,
-          },
+            collectionId,
+          } as any,
         });
       } catch {}
     })();
@@ -56,7 +96,8 @@ export async function POST(req: Request) {
         pageUrl,
         title: (body?.title ? String(body.title) : result.title) || null,
         source: (body?.source ? String(body.source) : result.source) || null,
-      },
+        collectionId,
+      } as any,
     });
     return NextResponse.json(data);
   }
@@ -80,7 +121,8 @@ export async function POST(req: Request) {
       url: directUrl,
       title: body?.title ? String(body.title) : null,
       source: body?.source ? String(body.source) : null,
-    },
+      collectionId,
+    } as any,
   });
   return NextResponse.json(data);
 }

@@ -5,4 +5,6 @@ export interface Cover {
   source?: string;
   url: string;
   pageUrl?: string;
+  liked?: boolean;
+  likesCount?: number;
 }
