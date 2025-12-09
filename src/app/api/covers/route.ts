@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Cover } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/server-auth-options';
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
   const likedCoverIds = await (prisma as any).like.findMany({
     where: {
       userId: String(session.user.id),
-      coverId: { in: covers.map((c) => c.id) },
+      coverId: { in: covers.map((c: Cover) => c.id) },
     },
     select: { coverId: true },
   });
