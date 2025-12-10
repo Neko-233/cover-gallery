@@ -57,6 +57,22 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user && token?.id) {
         session.user.id = token.id;
+        
+        // Fetch fresh data from database to ensure session is always up-to-date
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const freshUser = await (prisma as any).user.findUnique({
+                where: { id: token.id as string },
+                select: { image: true, name: true }
+            });
+            
+            if (freshUser) {
+                session.user.image = freshUser.image;
+                session.user.name = freshUser.name;
+            }
+        } catch (error) {
+            console.error('Error fetching fresh session data:', error);
+        }
       }
       return session;
     },
