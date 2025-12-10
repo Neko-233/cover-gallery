@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     // Upload to Vercel Blob
     const blob = await put(filename, file, {
       access: 'public',
-      // BLOB_READ_WRITE_TOKEN is automatically used from environment variables
+      token: process.env.AVATAR_READ_WRITE_TOKEN,
     });
 
     return NextResponse.json({ url: blob.url });
