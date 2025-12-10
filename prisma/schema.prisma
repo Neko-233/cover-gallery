@@ -21,9 +21,12 @@ model User {
   collections  Collection[]
   likes        Like[]
   comments     Comment[]
+  receivedComments Comment[] @relation("UserComments")
   collectionLikes CollectionLike[]
   sessions     Session[]
   accounts     Account[]
+  visitsReceived Visit[]  @relation("UserVisitsReceived")
+  visitsGiven    Visit[]  @relation("UserVisitsGiven")
 }
 
 model Cover {
@@ -64,15 +67,18 @@ model Comment {
   id           String     @id @default(cuid())
   content      String
   userId       String
-  collectionId String
+  collectionId String?
+  targetUserId String?
   parentId     String?    // For replies
   createdAt    DateTime   @default(now())
   user         User       @relation(fields: [userId], references: [id])
-  collection   Collection @relation(fields: [collectionId], references: [id])
+  collection   Collection? @relation(fields: [collectionId], references: [id])
+  targetUser   User?      @relation("UserComments", fields: [targetUserId], references: [id])
   parent       Comment?   @relation("CommentReplies", fields: [parentId], references: [id])
   replies      Comment[]  @relation("CommentReplies")
 
   @@index([collectionId])
+  @@index([targetUserId])
   @@index([parentId])
 }
 
@@ -98,6 +104,19 @@ model Like {
 
   @@unique([userId, coverId])
   @@index([coverId])
+}
+
+model Visit {
+  id           String   @id @default(cuid())
+  visitorId    String
+  targetUserId String
+  visitedAt    DateTime @default(now())
+
+  visitor      User     @relation("UserVisitsGiven", fields: [visitorId], references: [id])
+  targetUser   User     @relation("UserVisitsReceived", fields: [targetUserId], references: [id])
+
+  @@index([targetUserId])
+  @@index([visitorId])
 }
 
 model Account {

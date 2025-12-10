@@ -8,6 +8,7 @@ import { GalleryVerticalEnd, Globe, Lock, Share2, ThumbsUp, Star, MessageCircle,
 import { useSession } from 'next-auth/react';
 import Avatar from '@/components/Avatar';
 import HeaderActions from '@/components/HeaderActions';
+import CommentSection from '@/components/CommentSection';
 
 interface Collection {
   id: string;
@@ -16,6 +17,7 @@ interface Collection {
   visibility: 'PUBLIC' | 'PRIVATE';
   userId: string;
   user: {
+    id: string;
     name: string | null;
     image: string | null;
   };
@@ -41,6 +43,7 @@ interface Comment {
   content: string;
   createdAt: string;
   user: {
+    id: string;
     name: string | null;
     image: string | null;
   };
@@ -55,15 +58,10 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('popular_today');
   
-  // Likes & Comments state
+  // Likes state
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [liking, setLiking] = useState(false);
-  const [commentContent, setCommentContent] = useState('');
-  const [submittingComment, setSubmittingComment] = useState(false);
-  const [replyToId, setReplyToId] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState('');
-  const [submittingReply, setSubmittingReply] = useState(false);
 
   // Edit Collection State
   const [showEditModal, setShowEditModal] = useState(false);
@@ -103,7 +101,7 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
 
   const fetchComments = useCallback(async () => {
     try {
-      const res = await fetch(`/api/collections/comments?collectionId=${id}`);
+      const res = await fetch(`/api/collections/${id}/comments`);
       if (res.ok) {
         const data = await res.json();
         setCollection(prev => prev ? { ...prev, comments: data } : null);
@@ -199,67 +197,6 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
       } : null);
     } finally {
       setLiking(false);
-    }
-  };
-
-  const handleComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentContent.trim() || !session) return;
-    setSubmittingComment(true);
-
-    try {
-      const res = await fetch('/api/collections/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ collectionId: id, content: commentContent }),
-      });
-
-      if (res.ok) {
-        const newComment = await res.json();
-        setCollection(prev => prev ? { ...prev, comments: [newComment, ...prev.comments] } : null);
-        setCommentContent('');
-      }
-    } catch (e) {
-      console.error(e);
-      showToastMessage('评论失败', 'error');
-    } finally {
-      setSubmittingComment(false);
-    }
-  };
-
-  const handleReply = async (e: React.FormEvent, parentId: string, topLevelCommentId: string) => {
-    e.preventDefault();
-    if (!replyContent.trim() || !session) return;
-    setSubmittingReply(true);
-
-    try {
-      const res = await fetch('/api/collections/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ collectionId: id, content: replyContent, parentId }),
-      });
-
-      if (res.ok) {
-        const newReply = await res.json();
-        setCollection(prev => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            comments: prev.comments.map(c => 
-              c.id === topLevelCommentId 
-                ? { ...c, replies: [...(c.replies || []), newReply] }
-                : c
-            )
-          };
-        });
-        setReplyContent('');
-        setReplyToId(null);
-      }
-    } catch (e) {
-      console.error(e);
-      showToastMessage('回复失败', 'error');
-    } finally {
-      setSubmittingReply(false);
     }
   };
 
@@ -418,8 +355,10 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
                   </div>
                   <span className="text-zinc-300 dark:text-zinc-700">|</span>
                   <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    <Avatar src={collection.user.image} name={collection.user.name} size={20} />
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">{collection.user.name || 'Unknown'}</span>
+                    <Link href={`/user/${collection.userId}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                      <Avatar src={collection.user.image} name={collection.user.name} size={20} />
+                      <span className="font-medium text-zinc-900 dark:text-zinc-100">{collection.user.name || 'Unknown'}</span>
+                    </Link>
                     <span>创建于 {new Date(collection.covers[0]?.createdAt || Date.now()).getFullYear()}</span>
                   </div>
                 </div>
@@ -516,202 +455,13 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
 
           {/* Comments Section */}
           <div id="comments" className="mt-20 pt-10 border-t border-zinc-200 dark:border-zinc-800 max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 flex items-center gap-2">
-            <MessageCircle className="w-6 h-6" />
-            评论 ({collection.comments?.length || 0})
-          </h2>
-
-          {session ? (
-            <form onSubmit={handleComment} className="mb-10 flex gap-4">
-              <div className="shrink-0">
-                <Avatar src={session.user?.image} name={session.user?.name} size={40} />
-              </div>
-              <div className="flex-1">
-                <textarea
-                  value={commentContent}
-                  onChange={(e) => setCommentContent(e.target.value)}
-                  placeholder="写下你的评论..."
-                  className="w-full p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-zinc-500 focus:outline-none min-h-[100px] resize-none text-zinc-900 dark:text-zinc-100 placeholder-zinc-500"
-                />
-                <div className="flex justify-end mt-2">
-                  <button
-                    type="submit"
-                    disabled={submittingComment || !commentContent.trim()}
-                    className="px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submittingComment ? '发送中...' : '发表评论'}
-                  </button>
-                </div>
-              </div>
-            </form>
-          ) : (
-            <div className="mb-10 p-6 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-center">
-              <p className="text-zinc-500 dark:text-zinc-400 mb-4">登录后参与讨论</p>
-              <Link
-                href="/login"
-                className="inline-block px-6 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-full text-sm font-medium hover:opacity-90"
-              >
-                去登录
-              </Link>
-            </div>
-          )}
-
-          <div className="space-y-8">
-            {collection.comments?.map((comment) => (
-              <div key={comment.id} className="group">
-                <div className="flex gap-4">
-                  <div className="shrink-0">
-                    <Avatar src={comment.user.image} name={comment.user.name} size={40} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {comment.user.name || 'Unknown'}
-                      </span>
-                      <span className="text-xs text-zinc-500">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed mb-2">
-                      {comment.content}
-                    </p>
-                    
-                    {/* Reply Button */}
-                    <button
-                      onClick={() => {
-                        if (!session) {
-                          showToastMessage('请先登录', 'error');
-                          return;
-                        }
-                        setReplyToId(replyToId === comment.id ? null : comment.id);
-                        setReplyContent('');
-                      }}
-                      className="text-xs font-medium text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    >
-                      回复
-                    </button>
-
-                    {/* Reply Form */}
-                    {replyToId === comment.id && (
-                      <form onSubmit={(e) => handleReply(e, comment.id, comment.id)} className="mt-4 flex gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div className="shrink-0">
-                          <Avatar src={session?.user?.image} name={session?.user?.name} size={32} />
-                        </div>
-                        <div className="flex-1">
-                          <textarea
-                            value={replyContent}
-                            onChange={(e) => setReplyContent(e.target.value)}
-                            placeholder={`回复 @${comment.user.name}...`}
-                            className="w-full p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-zinc-500 focus:outline-none min-h-[80px] resize-none text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500"
-                            autoFocus
-                          />
-                          <div className="flex justify-end gap-2 mt-2">
-                            <button
-                              type="button"
-                              onClick={() => setReplyToId(null)}
-                              className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                            >
-                              取消
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={submittingReply || !replyContent.trim()}
-                              className="px-3 py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg text-xs font-medium hover:opacity-90 disabled:opacity-50"
-                            >
-                              {submittingReply ? '发送中...' : '回复'}
-                            </button>
-                          </div>
-                        </div>
-                      </form>
-                    )}
-
-                    {/* Nested Replies */}
-                    {comment.replies && comment.replies.length > 0 && (
-                      <div className="mt-4 space-y-4 pl-4 border-l-2 border-zinc-100 dark:border-zinc-800">
-                        {comment.replies.map((reply) => (
-                          <div key={reply.id} className="group/reply">
-                            <div className="flex gap-3">
-                              <div className="shrink-0">
-                                <Avatar src={reply.user.image} name={reply.user.name} size={32} />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                    {reply.user.name || 'Unknown'}
-                                  </span>
-                                  <span className="text-xs text-zinc-500">
-                                    {new Date(reply.createdAt).toLocaleDateString()}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed mb-1">
-                                  {reply.content}
-                                </p>
-                                
-                                {/* Reply to Reply Button */}
-                                <button
-                                  onClick={() => {
-                                    if (!session) {
-                                    showToastMessage('请先登录', 'error');
-                                    return;
-                                  }
-                                    setReplyToId(replyToId === reply.id ? null : reply.id);
-                                    setReplyContent('');
-                                  }}
-                                  className="text-xs font-medium text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors opacity-0 group-hover/reply:opacity-100"
-                                >
-                                  回复
-                                </button>
-
-                                {/* Reply to Reply Form */}
-                                {replyToId === reply.id && (
-                                  <form onSubmit={(e) => handleReply(e, comment.id, comment.id)} className="mt-3 flex gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <div className="shrink-0">
-                                      <Avatar src={session?.user?.image} name={session?.user?.name} size={24} />
-                                    </div>
-                                    <div className="flex-1">
-                                      <textarea
-                                        value={replyContent}
-                                        onChange={(e) => setReplyContent(e.target.value)}
-                                        placeholder={`回复 @${reply.user.name}...`}
-                                        className="w-full p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-zinc-500 focus:outline-none min-h-[60px] resize-none text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500"
-                                        autoFocus
-                                      />
-                                      <div className="flex justify-end gap-2 mt-2">
-                                        <button
-                                          type="button"
-                                          onClick={() => setReplyToId(null)}
-                                          className="px-3 py-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                                        >
-                                          取消
-                                        </button>
-                                        <button
-                                          type="submit"
-                                          disabled={submittingReply || !replyContent.trim()}
-                                          className="px-3 py-1 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg text-xs font-medium hover:opacity-90 disabled:opacity-50"
-                                        >
-                                          回复
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </form>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-            {collection.comments?.length === 0 && (
-              <div className="text-center py-10 text-zinc-500">
-                暂无评论，快来抢沙发吧！
-              </div>
-            )}
+            <CommentSection 
+              targetId={collection.id}
+              type="collection"
+              initialComments={collection.comments}
+              title={`评论 (${collection.comments?.length || 0})`}
+            />
           </div>
-        </div>
         </div>
       </main>
     </div>

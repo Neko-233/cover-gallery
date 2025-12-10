@@ -71,6 +71,18 @@ export default async function Page() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const totalLikes = covers.reduce((acc: number, c: any) => acc + c._count.likes, 0);
 
+  // Fetch visit count
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const visitCount = await (prisma as any).visit.count({
+    where: { targetUserId: String(userId) }
+  });
+
+  // Count total comments (including replies)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const totalCommentsCount = await (prisma as any).comment.count({
+    where: { targetUserId: String(userId) }
+  });
+
   // Get liked status for covers
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const likedCoverIds = await (prisma as any).like.findMany({
@@ -175,6 +187,14 @@ export default async function Page() {
               <span className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{totalLikes}</span>
               <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mt-1">封面获赞</span>
             </div>
+            <Link href={`/user/${userId}/visitors`} className="flex flex-col items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-900 rounded-2xl min-w-[100px] border border-zinc-100 dark:border-zinc-800 transition-transform hover:scale-105 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">
+              <span className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{visitCount}</span>
+              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mt-1">访客</span>
+            </Link>
+            <Link href="/dashboard/comments" className="flex flex-col items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-900 rounded-2xl min-w-[100px] border border-zinc-100 dark:border-zinc-800 transition-transform hover:scale-105 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">
+              <span className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{totalCommentsCount}</span>
+              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mt-1">留言</span>
+            </Link>
           </div>
         </div>
 
