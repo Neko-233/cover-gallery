@@ -13,6 +13,8 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [showUploadStatus, setShowUploadStatus] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
@@ -46,6 +48,7 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (uploading) return; // Prevent submit while uploading
     setSaving(true);
     try {
       const res = await fetch('/api/user/profile', {
@@ -55,15 +58,15 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
       });
 
       if (res.ok) {
-        router.refresh(); // Refresh server components
-        onClose();
+        // Force a hard refresh to update session and UI
+        window.location.reload();
       } else {
         alert('保存失败');
+        setSaving(false);
       }
     } catch (error) {
       console.error('Failed to save profile', error);
       alert('保存失败');
-    } finally {
       setSaving(false);
     }
   };
@@ -77,9 +80,8 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
       return;
     }
 
-    // Create a temporary preview
-    const previewUrl = URL.createObjectURL(file);
-    setFormData(prev => ({ ...prev, image: previewUrl }));
+    setUploading(true);
+    setShowUploadStatus(true);
 
     // Upload to server
     const formData = new FormData();
@@ -96,13 +98,12 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
         setFormData(prev => ({ ...prev, image: data.url }));
       } else {
         alert('上传图片失败');
-        // Revert to old image if needed, or just let user try again.
-        // For now, we'll keep the preview but it won't save correctly if we don't update image state with a real URL (unless we allow blob urls which is bad for persistence)
-        // Actually, if upload fails, we should probably clear the preview or warn.
       }
     } catch (error) {
       console.error('Upload failed:', error);
       alert('上传图片失败');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -138,22 +139,38 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
                       <Camera className="w-6 h-6 text-zinc-400" />
                     )}
                   </div>
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full">
-                    <span className="text-xs">更换</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  <label className={`absolute inset-0 flex items-center justify-center bg-black/50 text-white transition-opacity cursor-pointer rounded-full ${uploading ? 'opacity-100 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100'}`}>
+                    <span className="text-xs">{uploading ? '...' : '更换'}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                   </label>
                 </div>
                 <div className="flex-1">
                   <div className="text-xs text-zinc-500 mb-2">
                     支持 JPG, PNG, GIF。点击头像上传，或直接输入链接。
                   </div>
-                  <input
-                    type="text"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="或者输入头像链接..."
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-zinc-500 focus:outline-none text-zinc-900 dark:text-zinc-100 text-sm"
-                  />
+                  {showUploadStatus ? (
+                    <div className="h-[38px] flex items-center px-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
+                      {uploading ? (
+                        <div className="flex items-center gap-2 text-sm text-zinc-500 animate-pulse">
+                          <span className="w-2 h-2 rounded-full bg-zinc-400"></span>
+                          正在上传头像...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
+                          <span>✓</span>
+                          上传成功
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      placeholder="或者输入头像链接..."
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-zinc-500 focus:outline-none text-zinc-900 dark:text-zinc-100 text-sm"
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -193,16 +210,17 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                disabled={uploading || saving}
+                className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50"
               >
                 取消
               </button>
               <button
                 type="submit"
-                disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                disabled={saving || uploading}
+                className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
               >
-                {saving ? '保存中...' : '保存更改'}
+                {saving ? '保存中...' : uploading ? '等待上传...' : '保存更改'}
               </button>
             </div>
           </form>
