@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Cover } from '@/lib/covers';
 import CoverCard from '@/components/CoverCard';
 
-const INITIAL_LOAD = 60;
+
 
 function useColumns() {
   const [columns, setColumns] = useState(3);
@@ -35,7 +35,7 @@ export default function AutoScrollMasonry() {
     (async () => {
       try {
         const sources = ['allenai', 'smashing', 'vercel'];
-        
+
         // Use a Set to avoid duplicates if any
         const loadedCovers = new Set<string>();
         const newItems: Cover[] = [];
@@ -46,7 +46,7 @@ export default function AutoScrollMasonry() {
             const res = await fetch(`/api/scrape/${source}?offset=0&limit=20`);
             if (!res.ok) return;
             const data: Cover[] = await res.json();
-            
+
             if (cancelled) return;
 
             const uniqueData = data.filter(c => !loadedCovers.has(c.url));
@@ -61,10 +61,10 @@ export default function AutoScrollMasonry() {
 
             // Update state immediately with whatever we have
             // Ensure minimum items for marquee effect by duplication if needed
-            const displayItems = newItems.length < 20 
-              ? [...newItems, ...newItems, ...newItems].slice(0, 60) 
+            const displayItems = newItems.length < 20
+              ? [...newItems, ...newItems, ...newItems].slice(0, 60)
               : [...newItems];
-            
+
             setItems(displayItems);
           } catch {
             // ignore individual source errors
@@ -73,7 +73,7 @@ export default function AutoScrollMasonry() {
 
         // Fire all requests but let them settle independently
         await Promise.all(sources.map(fetchSource));
-        
+
       } catch {
         if (!cancelled) setError('部分封面加载失败');
       }
@@ -91,24 +91,24 @@ export default function AutoScrollMasonry() {
   }, [items, columns]);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-900" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' }}>
+    <div className={`h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-900 transition-opacity duration-1000 ${items.length > 0 ? 'opacity-100' : 'opacity-0'}`} style={{ maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' }}>
       {error && (
         <div className="absolute top-4 left-0 right-0 z-10 px-6 sm:px-8">
           <div className="rounded-lg border border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 px-3 py-2 text-sm">{error}</div>
         </div>
       )}
-      
+
       {/* 
         Vertical Marquee Container 
         Use Flex to separate columns
       */}
       <div className="h-full w-full flex gap-4 px-4 sm:gap-6 sm:px-8 justify-center">
         {columnData.map((colItems, colIndex) => (
-          <div 
-            key={colIndex} 
+          <div
+            key={colIndex}
             className="flex-1 min-w-0 h-full overflow-hidden relative"
           >
-            <div 
+            <div
               className="animate-marquee-vertical"
               style={{
                 // Adjust duration based on content length to maintain consistent speed
@@ -130,7 +130,7 @@ export default function AutoScrollMasonry() {
                   </div>
                 ))}
               </div>
-              
+
               {/* Duplicated List for seamless loop */}
               <div className="pb-4 sm:pb-6" aria-hidden="true">
                 {colItems.map((c, idx) => (
@@ -143,7 +143,7 @@ export default function AutoScrollMasonry() {
           </div>
         ))}
       </div>
-      
+
       <style jsx global>{`
         @keyframes marquee-vertical {
           0% {

@@ -3,9 +3,6 @@ import { Telegraf, Context } from 'telegraf';
 import { User } from '@prisma/client';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
-import fs from 'fs';
-import path from 'path';
-import https from 'https';
 import os from 'os';
 import { fetchCoverFromPage } from './fetchCover';
 
@@ -15,16 +12,18 @@ export interface BotContext extends Context {
 }
 
 // Bot Token
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8226805152:AAHUEFtZqsWnlKoF1Px75o859Z2UdVnoFp4';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 if (!BOT_TOKEN) {
-  console.error('Bot token is required');
+  console.error('❌ FATAL: TELEGRAM_BOT_TOKEN is not defined in environment variables.');
+  // We don't crash the process here because Next.js build might import this file.
+  // But the bot launch logic should generate a warning.
 }
 
 // Initialize Bot instance
 // Note: We export a function to get the bot to avoid side effects during build time if needed,
 // but for now a singleton instance is fine as long as we handle webhook/polling correctly.
-export const bot = new Telegraf<BotContext>(BOT_TOKEN);
+export const bot = new Telegraf<BotContext>(BOT_TOKEN || 'SUBSTITUTE_ENV_VAR_REQUIRED');
 
 // Web App URL (from env or default)
 const WEB_APP_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : (process.env.NEXTAUTH_URL || 'http://localhost:3000');
@@ -143,7 +142,7 @@ bot.command('bind', async (ctx) => {
 bot.command('unbind', async (ctx) => {
   const telegramId = ctx.from?.id.toString();
   if (!telegramId) return;
-  
+
   try {
     const deleteResult = await prisma.account.deleteMany({
       where: {
@@ -207,26 +206,26 @@ bot.command('add', withUser, async (ctx) => {
   try {
     // Simple URL validation
     if (!url.startsWith('http')) {
-        return ctx.reply('请输入有效的 URL (以 http 或 https 开头)。');
+      return ctx.reply('请输入有效的 URL (以 http 或 https 开头)。');
     }
 
     ctx.reply('🔍 正在提取封面信息...');
 
     // Try to fetch cover info
     const info = await fetchCoverFromPage(url);
-    
+
     if (info.imageUrl) {
-        imageUrl = info.imageUrl;
-        if (!title && info.title) {
-            title = info.title;
-        }
-        if (info.source) {
-            source = info.source;
-        }
+      imageUrl = info.imageUrl;
+      if (!title && info.title) {
+        title = info.title;
+      }
+      if (info.source) {
+        source = info.source;
+      }
     }
 
     if (!title) {
-        title = 'Untitled Cover';
+      title = 'Untitled Cover';
     }
 
     const cover = await prisma.cover.create({
@@ -241,9 +240,9 @@ bot.command('add', withUser, async (ctx) => {
 
     let replyMsg = `✅ 封面添加成功！\nID: \`${cover.id}\`\nTitle: ${cover.title}`;
     if (imageUrl !== url) {
-        replyMsg += `\nImage: [Preview](${imageUrl})`;
+      replyMsg += `\nImage: [Preview](${imageUrl})`;
     }
-    
+
     ctx.replyWithMarkdown(replyMsg);
   } catch (error) {
     console.error(error);
@@ -267,26 +266,26 @@ bot.command('delete', withUser, async (ctx) => {
 
     // Check if input is a number
     if (/^\d+$/.test(input)) {
-        const index = parseInt(input, 10);
-        if (index < 1) {
-            return ctx.reply('序号必须大于 0');
-        }
+      const index = parseInt(input, 10);
+      if (index < 1) {
+        return ctx.reply('序号必须大于 0');
+      }
 
-        const covers = await prisma.cover.findMany({
-            where: { userId: ctx.user.id },
-            orderBy: { createdAt: 'desc' },
-            take: index,
-            select: { id: true, title: true },
-        });
+      const covers = await prisma.cover.findMany({
+        where: { userId: ctx.user.id },
+        orderBy: { createdAt: 'desc' },
+        take: index,
+        select: { id: true, title: true },
+      });
 
-        if (covers.length < index) {
-            return ctx.reply(`找不到序号为 ${index} 的封面。您最近只有 ${covers.length} 个收藏。`);
-        }
+      if (covers.length < index) {
+        return ctx.reply(`找不到序号为 ${index} 的封面。您最近只有 ${covers.length} 个收藏。`);
+      }
 
-        const targetCover = covers[index - 1];
-        coverId = targetCover.id;
-        
-        await ctx.reply(`正在删除第 ${index} 个封面: ${targetCover.title || 'Untitled'} ...`);
+      const targetCover = covers[index - 1];
+      coverId = targetCover.id;
+
+      await ctx.reply(`正在删除第 ${index} 个封面: ${targetCover.title || 'Untitled'} ...`);
     }
 
     const cover = await prisma.cover.findFirst({
@@ -318,9 +317,9 @@ bot.command('check', async (ctx) => {
     const memoryUsage = process.memoryUsage();
     const freeMemory = os.freemem();
     const totalMemory = os.totalmem();
-    
+
     const formatMem = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-    
+
     let dbStatus = '❌ Disconnected';
     try {
       await prisma.$queryRaw`SELECT 1`;
@@ -353,79 +352,8 @@ bot.command('check', async (ctx) => {
 });
 
 // Handle photo messages
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-bot.on('photo', withUser, async (ctx: any) => {
-  if (!ctx.user) return; 
+bot.on('photo', withUser, async (ctx: BotContext) => {
+  if (!ctx.user) return;
 
-  try {
-    const photos = ctx.message.photo;
-    const photo = photos[photos.length - 1];
-    const fileId = photo.file_id;
-    const fileLink = await ctx.telegram.getFileLink(fileId);
-    
-    // NOTE: On Vercel, we cannot save files to local disk permanently.
-    // This part is problematic for serverless.
-    // Ideally, we should stream the file to S3 or similar.
-    // For now, we keep the logic but it might fail or file will be lost on Vercel.
-    
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000);
-    const ext = path.extname(fileLink.href) || '.jpg';
-    const filename = `telegram-${ctx.user.id}-${timestamp}-${random}${ext}`;
-    
-    // Use /tmp for Vercel if needed, but for now we stick to public/uploads
-    // warning: this will not persist in Vercel production
-    const publicPath = path.join(process.cwd(), 'public', 'uploads');
-    const filePath = path.join(publicPath, filename);
-    const dbUrl = `/uploads/${filename}`;
-
-    if (!fs.existsSync(publicPath)) {
-        // This might throw EROFS on Vercel if public is read-only at runtime
-        // But let's try-catch or just proceed
-        try {
-            fs.mkdirSync(publicPath, { recursive: true });
-        } catch (e) {
-            console.error('Failed to create upload dir:', e);
-            return ctx.reply('❌ 服务器存储配置错误 (Vercel Read-only FS)。图片上传功能在无对象存储配置下不可用。');
-        }
-    }
-
-    await new Promise<void>((resolve, reject) => {
-        https.get(fileLink, (response) => {
-            if (response.statusCode !== 200) {
-                reject(new Error(`Failed to download: ${response.statusCode}`));
-                return;
-            }
-            const fileStream = fs.createWriteStream(filePath);
-            response.pipe(fileStream);
-            fileStream.on('finish', () => {
-                fileStream.close();
-                resolve();
-            });
-            fileStream.on('error', (err) => {
-                fs.unlink(filePath, () => {}); 
-                reject(err);
-            });
-        }).on('error', (err) => {
-            reject(err);
-        });
-    });
-
-    const title = ('caption' in ctx.message && ctx.message.caption) ? ctx.message.caption : 'Uploaded via Telegram';
-
-    const cover = await prisma.cover.create({
-      data: {
-        userId: ctx.user.id,
-        url: dbUrl,
-        title: title,
-        source: 'telegram-bot-upload',
-      },
-    });
-
-    ctx.reply(`✅ 图片上传成功！\nID: \`${cover.id}\`\nTitle: ${cover.title}\n(注意：在 Vercel 上文件可能无法持久保存)`);
-
-  } catch (error) {
-    console.error('Error handling photo:', error);
-    ctx.reply('图片上传失败，请稍后重试。');
-  }
+  ctx.reply('⚠️ 图片上传功能目前未启用。\n原因：Serverless 环境不支持本地文件存储，需要配合 S3/对象存储服务使用。');
 });

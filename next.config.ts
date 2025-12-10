@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
     // allow all local images
-    unoptimized: true, 
+    unoptimized: false,
   },
 };
 

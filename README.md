@@ -8,7 +8,7 @@
 
 ## 环境变量
 在项目根目录 `.env` 中配置：
-- `DATABASE_URL`（本地已默认 `file:./prisma/dev.db`）
+- `DATABASE_URL`（需要 PostgreSQL 数据库连接串）
 - `NEXTAUTH_URL`（开发为 `http://localhost:3000`）
 - `NEXTAUTH_SECRET`（生产环境请设置随机字符串）
 

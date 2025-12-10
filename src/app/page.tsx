@@ -1,52 +1,31 @@
-import CoverGrid from '@/components/CoverGrid';
 import HeaderActions from '@/components/HeaderActions';
-import { getServerSession } from 'next-auth';
+import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/lib/server-auth-options';
-import { prisma } from '@/lib/prisma';
-import UserCoversClient from '@/components/UserCoversClient';
 import AutoScrollMasonry from '@/components/AutoScrollMasonry';
 
 import { GalleryVerticalEnd } from 'lucide-react';
 
 import Hero from '@/components/Hero';
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ page?: string; pageSize?: string }> }) {
-  let session: Awaited<ReturnType<typeof getServerSession>> | null = null;
+export default async function Home() {
+  let session: Session | null = null;
   try {
     session = await getServerSession(authOptions);
   } catch {
     session = null;
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userId = (session as any)?.user?.id as string | undefined;
-  let covers: { id: string; filename: string; title?: string; source?: string; url: string; pageUrl?: string }[] = [];
-  if (userId) {
-    try {
-      const sp = await searchParams;
-      const page = Number(sp?.page ?? '1') || 1;
-      const pageSize = Number(sp?.pageSize ?? '20') || 20;
-      const take = Math.max(1, Math.min(100, pageSize));
-      const skip = (Math.max(1, page) - 1) * take;
-      const userCovers = await prisma.cover.findMany({
-        where: { userId: String(userId) },
-        orderBy: { createdAt: 'desc' },
-        take,
-        skip,
-      });
-      covers = userCovers.map((c) => ({ id: c.id, filename: c.url, title: c.title || undefined, source: c.source || undefined, url: c.url, pageUrl: c.pageUrl || undefined }));
-    } catch {}
-  }
+  const userId = session?.user?.id;
 
   return (
     <div className="h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900 overflow-hidden relative">
       {/* Global Background Layer - Fixed and Full Screen */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 z-10 bg-zinc-50/40 dark:bg-zinc-900/40 backdrop-blur-[1px]" />
-        
+
         {/* Gradient Overlays - moved from Hero to cover full screen */}
         <div className="absolute inset-0 z-20 bg-gradient-to-b from-zinc-50/50 via-zinc-50/20 to-zinc-50/80 dark:from-zinc-900/50 dark:via-zinc-900/20 dark:to-zinc-900/80 pointer-events-none" />
         <div className="absolute inset-0 z-20 bg-[radial-gradient(circle_at_center,theme(colors.zinc.50)_0%,transparent_100%)] dark:bg-[radial-gradient(circle_at_center,theme(colors.zinc.900)_0%,transparent_100%)] opacity-60 pointer-events-none" />
-        
+
         <AutoScrollMasonry />
       </div>
 

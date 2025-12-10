@@ -12,34 +12,34 @@ export default function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
             封面灵感库
           </span>
         </h1>
-        
+
         <p className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-300 max-w-2xl mx-auto leading-relaxed animate-fade-up" style={{ animationDelay: '100ms' }}>
           不再让灵感稍纵即逝。
           <br className="hidden sm:block" />
           在这里，你可以轻松收集、整理并回味每一个让你心动的封面设计，打造独一无二的私人画廊。
         </p>
-        
+
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 animate-fade-up" style={{ animationDelay: '200ms' }}>
-          <Link 
+          <Link
             href="/explore"
-            className="group relative w-48 h-14 bg-white/30 dark:bg-black/30 backdrop-blur-2xl border border-white/20 dark:border-white/10 text-zinc-900 dark:text-white rounded-full font-medium text-lg transition-all hover:bg-white/50 dark:hover:bg-white/10 hover:scale-105 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] active:scale-95 flex items-center justify-center gap-2"
+            className="group relative w-48 h-12 sm:h-14 bg-white/10 dark:bg-black/20 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 text-zinc-600 dark:text-zinc-300 rounded-full font-medium text-lg transition-all hover:bg-white/20 dark:hover:bg-white/5 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-900 dark:hover:text-white hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
             探索灵感
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform opacity-70 group-hover:opacity-100" />
           </Link>
-          
+
           {isLoggedIn ? (
-            <Link 
+            <Link
               href="/dashboard"
-              className="group w-48 h-14 bg-white/30 dark:bg-black/30 backdrop-blur-2xl text-zinc-900 dark:text-white border border-white/20 dark:border-white/10 rounded-full font-medium text-lg transition-all hover:bg-white/50 dark:hover:bg-white/10 hover:scale-105 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] active:scale-95 flex items-center justify-center gap-2"
+              className="group w-48 h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-500/20 rounded-full font-medium text-lg transition-all hover:shadow-blue-500/40 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
             >
               我的画廊
               <LayoutGrid className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </Link>
           ) : (
-            <Link 
+            <Link
               href="/register"
-              className="group w-48 h-14 bg-white/30 dark:bg-black/30 backdrop-blur-2xl border border-white/20 dark:border-white/10 text-zinc-900 dark:text-white rounded-full font-medium text-lg transition-all hover:bg-white/50 dark:hover:bg-white/10 hover:scale-105 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] active:scale-95 flex items-center justify-center gap-2"
+              className="group w-48 h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-500/20 rounded-full font-medium text-lg transition-all hover:shadow-blue-500/40 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
             >
               加入我们
               <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
