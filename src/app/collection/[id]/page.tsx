@@ -42,6 +42,7 @@ interface Comment {
   id: string;
   content: string;
   createdAt: string;
+  parentId?: string | null;
   user: {
     id: string;
     name: string | null;
@@ -402,7 +403,7 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
                   <a href="#comments" className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95">
                     <MessageCircle className="w-5 h-5" />
                     <span>评论</span>
-                    <span className="opacity-60 ml-1">| {collection.comments?.length || 0}</span>
+                    <span className="opacity-60 ml-1">| {collection.comments?.filter(c => !c.parentId).length || 0}</span>
                   </a>
                 </div>
               </div>
@@ -459,7 +460,7 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
               targetId={collection.id}
               type="collection"
               initialComments={collection.comments}
-              title={`评论 (${collection.comments?.length || 0})`}
+              title="评论"
             />
           </div>
         </div>

@@ -77,10 +77,13 @@ export default async function Page() {
     where: { targetUserId: String(userId) }
   });
 
-  // Count total comments (including replies)
+  // Count total comments (excluding replies)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const totalCommentsCount = await (prisma as any).comment.count({
-    where: { targetUserId: String(userId) }
+    where: { 
+      targetUserId: String(userId),
+      parentId: null
+    }
   });
 
   // Get liked status for covers

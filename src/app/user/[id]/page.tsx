@@ -123,10 +123,13 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
     },
   });
 
-  // Count total comments (including replies)
+  // Count total comments (excluding replies)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const totalCommentsCount = await (prisma as any).comment.count({
-    where: { targetUserId: userId }
+    where: { 
+      targetUserId: userId,
+      parentId: null
+    }
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -213,7 +216,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
            <CommentSection 
              targetId={userId} 
              type="user" 
-             title={`留言板 (${totalCommentsCount})`}
+             title="留言板"
              initialComments={formattedComments}
            />
         </div>

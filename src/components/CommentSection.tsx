@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { MessageCircle } from 'lucide-react';
@@ -18,6 +18,8 @@ export interface Comment {
   };
   replies?: Comment[];
 }
+
+const EMPTY_COMMENTS: Comment[] = [];
 
 interface CommentSectionProps {
   targetId: string;
@@ -161,12 +163,20 @@ const CommentItem = ({
   );
 };
 
-export default function CommentSection({ targetId, type, initialComments = [], title }: CommentSectionProps) {
+export default function CommentSection({ targetId, type, initialComments = EMPTY_COMMENTS, title }: CommentSectionProps) {
   const { data: session } = useSession();
   const [flatComments, setFlatComments] = useState<Comment[]>(initialComments);
+  const prevInitialComments = useRef(initialComments);
 
   useEffect(() => {
-    setFlatComments(initialComments);
+    // Check if initialComments actually changed by content to prevent infinite loop
+    const hasChanged = initialComments.length !== prevInitialComments.current.length || 
+                       initialComments.some((c, i) => c.id !== prevInitialComments.current[i]?.id);
+    
+    if (hasChanged) {
+      prevInitialComments.current = initialComments;
+      setFlatComments(initialComments);
+    }
   }, [initialComments]);
 
   // Build Tree
@@ -301,7 +311,7 @@ export default function CommentSection({ targetId, type, initialComments = [], t
 
       <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 flex items-center gap-2">
         <MessageCircle className="w-6 h-6" />
-        {title || `评论 (${flatComments.length})`}
+        {title ? `${title} (${rootComments.length})` : `评论 (${rootComments.length})`}
       </h2>
 
       {session ? (

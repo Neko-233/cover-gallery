@@ -36,10 +36,13 @@ export default async function DashboardCommentsPage() {
     },
   });
 
-  // Count total comments (including replies)
+  // Count total comments (excluding replies)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const totalCommentsCount = await (prisma as any).comment.count({
-    where: { targetUserId: userId }
+    where: { 
+      targetUserId: userId,
+      parentId: null
+    }
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,7 +72,7 @@ export default async function DashboardCommentsPage() {
           <CommentSection 
             targetId={userId} 
             type="user" 
-            title={`共 ${totalCommentsCount} 条留言`}
+            title="留言板"
             initialComments={formattedComments}
           />
         </div>
